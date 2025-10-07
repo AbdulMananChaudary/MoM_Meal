@@ -1448,7 +1448,6 @@ from flask import send_file, Response
 import os
 
 # Add these routes at the end of your app.py (before if __name__ == '__main__':)
-
 @app.route('/view_logs')
 def view_logs():
     """View usage logs in browser"""
@@ -1456,6 +1455,10 @@ def view_logs():
         if os.path.exists('logs/usage_log.txt'):
             with open('logs/usage_log.txt', 'r', encoding='utf-8') as f:
                 content = f.read()
+            
+            # Calculate stats outside f-string
+            total_events = len(content.split('\n')) - 1
+            unique_users = len(set([line.split('User: ')[1].split(' |')[0] for line in content.split('\n') if 'User:' in line]))
             
             html = f'''
             <!DOCTYPE html>
@@ -1480,8 +1483,8 @@ def view_logs():
                     <a href="/" class="download-btn" style="background: #666;">🏠 Back to App</a>
                     
                     <div class="stats">
-                        <strong>Total Events:</strong> {len(content.split('\\n')) - 1}<br>
-                        <strong>Unique Users:</strong> {len(set([line.split('User: ')[1].split(' |')[0] for line in content.split('\\n') if 'User:' in line]))}
+                        <strong>Total Events:</strong> {total_events}<br>
+                        <strong>Unique Users:</strong> {unique_users}
                     </div>
                     
                     <h2>Log Entries:</h2>
@@ -1504,7 +1507,7 @@ def view_feedback():
             with open('logs/feedback.txt', 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # Count feedback entries
+            # Count feedback entries outside f-string
             feedback_count = content.count('='*50) // 2
             
             html = f'''
@@ -1544,7 +1547,7 @@ def view_feedback():
             return '<h1>No feedback yet</h1><a href="/">Back to App</a>'
     except Exception as e:
         return f'<h1>Error reading feedback: {str(e)}</h1><a href="/">Back to App</a>'
-
+        
 @app.route('/download_logs')
 def download_logs():
     """Download usage logs as file"""
